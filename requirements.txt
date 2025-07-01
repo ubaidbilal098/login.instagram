@@ -1,4 +1,4 @@
 flask
 requests
 telebot
-ip2geotools
+ip2geotools --no-deps
